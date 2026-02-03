@@ -1,14 +1,22 @@
-export async function POST(request: Request) {
-	const formData = await request.formData();
-	const files = formData.getAll("files");
-	const data = Object.fromEntries(formData);
-	console.log("Raw form data:", formData);
-	console.log ("Files:", files);
-	console.log("Object.FromEntries():", data)
+import fs from "fs";
 
-	return new Response(JSON.stringify(data),
-	{
-		status: 201,
-		headers: { 'Content-Type': 'application/json' }
-	});
-} 
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const files = formData.getAll("files");
+
+  try {
+    if (!fs.existsSync("app/uploads")) {
+      console.log("Uploads doesn't extist");
+    }
+    if (!fs.existsSync("public")) {
+      console.log("@Public doesn't work");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  return new Response(JSON.stringify(files), {
+    status: 201,
+    headers: { "Content-Type": "application/json" },
+  });
+}
