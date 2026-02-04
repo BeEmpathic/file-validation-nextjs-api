@@ -4,7 +4,10 @@ import { v4 } from "uuid";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const files = formData.getAll("files") as File[];
+  const files = (formData.getAll("files") as File[]) || {};
+  const filesArray = [];
+
+  // The message returned to the user
   let message: string = "";
 
   if (files.length === 0) {
@@ -27,19 +30,28 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   }
-  files.map(async (file) => {
-    try {
-      const filename = `${v4()}-${file.name}`;
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const filePath = path.join(upoladDir, filename);
-      await fs.writeFile(filePath, buffer);
-      uploadedFiles.push(`uploads/${filename}`);
-      message += `File ${file.name} uploaded successfully as ${filename}\n`;
-    } catch (error) {
-      console.error("Error saving file: ", error);
-      message += `Error saving file ${file.name}: ${error}\n`;
-    }
-  });
+  await Promise.all(
+    files.map(async (file) => {
+      try {
+        // dealing with file's name
+        const fileClientName = path.basename(file.name || "unnamed");
+        const extension = path.extname(fileClientName).toLowerCase();
+        const fileServerName = `${v4()}-${fileClientName}${extension}`;
+
+        console.log("file server name: ", fileServerName);
+
+        // saving the file to the disk
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const filePath = path.join(upoladDir, fileServerName);
+        await fs.writeFile(filePath, buffer);
+        uploadedFiles.push(`uploads/${fileServerName}`);
+        message += `File ${fileClientName} uploaded successfully as ${fileServerName}\n`;
+      } catch (error) {
+        console.error("Error saving file: ", error);
+        message += `Error saving file ${file.name}: ${error}\n`;
+      }
+    }),
+  );
 
   return new Response(JSON.stringify(message), {
     status: 201,
