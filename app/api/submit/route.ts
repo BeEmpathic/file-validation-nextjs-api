@@ -7,14 +7,19 @@ export async function POST(request: Request) {
   const files = (formData.getAll("files") as File[]) || {};
   const filesArray = [];
 
+  if (files.length > 20) {
+    return new Response(JSON.stringify("Too many files. Max 20"));
+  }
+
   // The message returned to the user
   let message: string = "";
   console.log("the files at the begining: ", files);
 
-  // uploaded files names
-  const uploadedFilesNames: string[] = [];
+  // predefining an array and path for uploaded files, and their names
+  const uploadedFilesNames: object[] = [];
   const upoladDir = path.join(process.cwd(), "public/uploads");
 
+  // creating directory uploads if it doesn't exist
   try {
     await fs.mkdir(upoladDir, { recursive: true });
   } catch (error) {
@@ -72,11 +77,18 @@ export async function POST(request: Request) {
         await fs.writeFile(filePath, buffer);
 
         // giving the message to the user
-        uploadedFilesNames.push(`uploads/${fileServerName}`);
-        message += `File ${fileClientName} uploaded successfully as ${fileServerName}\n`;
+        uploadedFilesNames.push({
+          fileName: `${fileServerName}`,
+          message: "uploaded successfully",
+        });
+        message += `<p>File: ${fileClientName} uploaded successfully as ${fileServerName}</p>`;
       } catch (error) {
         console.error("Error saving file: ", error);
-        message += `Error saving file ${file.name}: ${error}\n`;
+
+        uploadedFilesNames.push({
+          fileName: `${file.name}`,
+          message: `Error saving file: ${file.name}: ${error}\n`,
+        });
       }
     }),
   );
