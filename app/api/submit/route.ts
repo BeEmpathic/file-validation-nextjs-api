@@ -30,11 +30,20 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  // file validation starts here
+  const FILE_PATH_REGEX = /([^A-z0-9_\- ])/;
   await Promise.all(
     files.map(async (file) => {
       try {
         // dealing with file's name
         const fileClientName = path.basename(file.name || "unnamed");
+
+        if (FILE_PATH_REGEX.test(fileClientName)) {
+          throw new Error(
+            "Invalid file name. File shoudn't contain special characters",
+          );
+        }
         const extension = path.extname(fileClientName).toLowerCase();
         const fileServerName = `${v4()}-${fileClientName}${extension}`;
 
@@ -44,6 +53,8 @@ export async function POST(request: Request) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const filePath = path.join(upoladDir, fileServerName);
         await fs.writeFile(filePath, buffer);
+
+        // giving the message to the user
         uploadedFiles.push(`uploads/${fileServerName}`);
         message += `File ${fileClientName} uploaded successfully as ${fileServerName}\n`;
       } catch (error) {
