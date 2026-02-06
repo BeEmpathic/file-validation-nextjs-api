@@ -2,7 +2,7 @@
 import { FormEvent, useState } from "react";
 
 export default function Page() {
-  const [data, setData] = useState<string>("");
+  const [data, setData] = useState<string[]>([]);
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -16,7 +16,7 @@ export default function Page() {
     // Handle response if necessary
 
     console.log("Just the response:", response);
-    console.log("Respone .json:", data);
+    console.log("Data: ", data);
     // ...
   }
 
@@ -26,7 +26,15 @@ export default function Page() {
       <button className="cursor-pointer border-solid" type="submit">
         Submit
       </button>
-      <div id="result">{data ? data : "nothing yet"}</div>
+      {
+        <div id="result">
+          {data.length > 0 ? (
+            data.map((message, index) => <p key={index}>{message}</p>)
+          ) : (
+            <p>Array is empty</p>
+          )}
+        </div>
+      }
     </form>
   );
 }

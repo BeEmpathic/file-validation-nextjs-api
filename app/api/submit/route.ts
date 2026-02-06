@@ -1,3 +1,9 @@
+/* TODOS!!!
+
+ - CHange validation so it returns a string which you can use in the pasge.tsx
+
+*/
+
 import fs from "fs/promises";
 import path from "path";
 import { v4 } from "uuid";
@@ -12,7 +18,7 @@ export async function POST(request: Request) {
   }
 
   // The message returned to the user
-  let message: string = "";
+  let message: string[] = [];
   console.log("the files at the begining: ", files);
 
   // predefining an array and path for uploaded files, and their names
@@ -40,7 +46,7 @@ export async function POST(request: Request) {
       try {
         // check if file isn't empty
         if (file.size <= 0) {
-          throw new Error("File is empty");
+          throw new Error("No files or File is empty");
           return;
         }
 
@@ -79,16 +85,13 @@ export async function POST(request: Request) {
         // giving the message to the user
         uploadedFilesNames.push({
           fileName: `${fileServerName}`,
-          message: "uploaded successfully",
+          message: "",
         });
-        message += `<p>File: ${fileClientName} uploaded successfully as ${fileServerName}</p>`;
+        message.push(`uploaded successfully as ${fileServerName}`);
       } catch (error) {
         console.error("Error saving file: ", error);
 
-        uploadedFilesNames.push({
-          fileName: `${file.name}`,
-          message: `Error saving file: ${file.name}: ${error}\n`,
-        });
+        message.push(`Error saving file: ${file.name}: ${error}\n`);
       }
     }),
   );
