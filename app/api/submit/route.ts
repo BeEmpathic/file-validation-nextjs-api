@@ -9,16 +9,10 @@ export async function POST(request: Request) {
 
   // The message returned to the user
   let message: string = "";
+  console.log("the files at the begining: ", files);
 
-  if (files.length === 0) {
-    let message = "No files uploaded.";
-    return new Response(JSON.stringify(message), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const uploadedFiles: string[] = [];
+  // uploaded files names
+  const uploadedFilesNames: string[] = [];
   const upoladDir = path.join(process.cwd(), "public/uploads");
 
   try {
@@ -32,20 +26,43 @@ export async function POST(request: Request) {
   }
 
   // file validation starts here
+
+  // regex
   const FILE_PATH_REGEX = /([^A-z0-9_\- ])/;
+  console.log("files: ", files);
   await Promise.all(
     files.map(async (file) => {
       try {
-        // dealing with file's name
-        const fileClientName = path.basename(file.name || "unnamed");
+        // check if file isn't empty
+        if (file.size <= 0) {
+          throw new Error("File is empty");
+          return;
+        }
 
-        if (FILE_PATH_REGEX.test(fileClientName)) {
+        // checking if the file's size isn't too big 10MB
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error("This file is like your mom, it's too big!");
+        }
+        // dealing with file's name
+        const fileClientName = path.basename(file.name || "unnamed").trim();
+        const fileNoDotsName = fileClientName.replaceAll(".", "");
+
+        if (FILE_PATH_REGEX.test(fileNoDotsName)) {
           throw new Error(
             "Invalid file name. File shoudn't contain special characters",
           );
         }
+
+        // checking files name length
+        if (fileNoDotsName.length === 200) {
+          throw new Error(
+            "Invalid file name. File name should be less than 200 characters",
+          );
+        }
+
         const extension = path.extname(fileClientName).toLowerCase();
-        const fileServerName = `${v4()}-${fileClientName}${extension}`;
+        const fileServerName =
+          `${v4()}-${fileNoDotsName}${extension}` as string;
 
         console.log("file server name: ", fileServerName);
 
@@ -55,7 +72,7 @@ export async function POST(request: Request) {
         await fs.writeFile(filePath, buffer);
 
         // giving the message to the user
-        uploadedFiles.push(`uploads/${fileServerName}`);
+        uploadedFilesNames.push(`uploads/${fileServerName}`);
         message += `File ${fileClientName} uploaded successfully as ${fileServerName}\n`;
       } catch (error) {
         console.error("Error saving file: ", error);

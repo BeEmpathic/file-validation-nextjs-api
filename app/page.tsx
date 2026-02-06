@@ -1,7 +1,8 @@
 "use client";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 
 export default function Page() {
+  const [data, setData] = useState<string>("");
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -10,7 +11,7 @@ export default function Page() {
       method: "POST",
       body: formData,
     });
-    const data = await response.json();
+    setData(await response.json());
 
     // Handle response if necessary
 
@@ -21,10 +22,11 @@ export default function Page() {
 
   return (
     <form onSubmit={onSubmit}>
-      <input type="file" name="files" />
+      <input type="file" multiple name="files" />
       <button className="cursor-pointer border-solid" type="submit">
         Submit
       </button>
+      <div id="result">{data ? data : "nothing yet"}</div>
     </form>
   );
 }
