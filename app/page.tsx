@@ -31,7 +31,7 @@ export default function Page() {
           {data.length > 0 ? (
             data.map((message, index) => <p key={index}>{message}</p>)
           ) : (
-            <p>Array is empty</p>
+            <p>No files added yet</p>
           )}
         </div>
       }

@@ -1,8 +1,13 @@
 /* TODOS!!!
 
- - CHange validation so it returns a string which you can use in the pasge.tsx
+- Add checking the file type, but not the file.type cause it sucks
+- rebuild everything with functions, for each stuff cause it helps
+- quit streaming a file when you find it bad now you get the all even if they suck fuck them
+
 
 */
+
+// the validation sucks I will do a better one on other brunch this one is like okay if you need it at home otherwise don't trust it
 
 import fs from "fs/promises";
 import path from "path";
@@ -40,6 +45,7 @@ export async function POST(request: Request) {
 
   // regex
   const FILE_PATH_REGEX = /([^A-z0-9_\- ])/;
+  const FILE_TYPES = ["image/*"];
   console.log("files: ", files);
   await Promise.all(
     files.map(async (file) => {
@@ -54,6 +60,12 @@ export async function POST(request: Request) {
         if (file.size > 10 * 1024 * 1024) {
           throw new Error("This file is like your mom, it's too big!");
         }
+
+        // checkinf files type
+        if (!file.type.startsWith("image/")) {
+          throw new Error("This isn't recognized as an image");
+        }
+
         // dealing with file's name
         const fileClientName = path.basename(file.name || "unnamed").trim();
         const fileNoDotsName = fileClientName.replaceAll(".", "");
@@ -65,17 +77,21 @@ export async function POST(request: Request) {
         }
 
         // checking files name length
-        if (fileNoDotsName.length === 200) {
+        if (fileNoDotsName.length > 200) {
           throw new Error(
             "Invalid file name. File name should be less than 200 characters",
           );
         }
 
+        // the extension dealing with and creation of the server name of the file
         const extension = path.extname(fileClientName).toLowerCase();
         const fileServerName =
           `${v4()}-${fileNoDotsName}${extension}` as string;
 
-        console.log("file server name: ", fileServerName);
+        // checking of the length isn't too much in servername
+        if (fileServerName.length > 250) {
+          throw new Error("Isn't your extension too long or something mate? ");
+        }
 
         // saving the file to the disk
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -97,7 +113,7 @@ export async function POST(request: Request) {
   );
 
   return new Response(JSON.stringify(message), {
-    status: 201,
+    status: 200,
     headers: { "Content-Type": "application/json" },
   });
 }
