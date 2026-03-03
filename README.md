@@ -5,5 +5,11 @@ I used app routes cause I think they are better for file validation than server 
 There is a chance that it might not be good 
 
 ## How to get it to work?
-If you just clone it should work
+
+- Install node.js on your machine
+- go to the: "file-validaiton-api" file
+- Run in the file:
+```bash
+npm run dev
+```
 
